@@ -3,250 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paper Lanka - ශ්‍රී ලංකාවේ පාසල් ප්‍රශ්න පත්‍ර එකතුව</title>
+    <title>Paper Lanka - Past Papers</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Noto Sans Sinhala', sans-serif; }
-       .loader { border-top-color: #2563eb; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50">
-
-    <header class="bg-white shadow-sm sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <svg class="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
-                <div>
-                    <h1 class="text-2xl font-bold text-blue-600">Paper Lanka</h1>
-                    <p class="text-xs text-slate-500">ශ්‍රී ලංකාවේ පාසල් ප්‍රශ්න පත්‍ර එකතුව</p>
-                </div>
-            </div>
-            <button id="adminLoginBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Admin Login</button>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
-            <h2 class="text-lg font-semibold mb-4">ප්‍රශ්න පත්‍ර සොයන්න</h2>
-            <div class="grid md:grid-cols-4 gap-4">
-                <select id="filterGrade" class="border rounded-lg px-3 py-2">
-                    <option value="">සියලු ශ්‍රේණි</option>
-                    <option value="6">6 ශ්‍රේණිය</option>
-                    <option value="7">7 ශ්‍රේණිය</option>
-                    <option value="8">8 ශ්‍රේණිය</option>
-                    <option value="9">9 ශ්‍රේණිය</option>
-                    <option value="10">10 ශ්‍රේණිය</option>
-                    <option value="11">11 ශ්‍රේණිය</option>
-                    <option value="12">12 ශ්‍රේණිය</option>
-                    <option value="13">13 ශ්‍රේණිය</option>
-                </select>
-                <select id="filterSubject" class="border rounded-lg px-3 py-2">
-                    <option value="">සියලු විෂයයන්</option>
-                    <option value="ගණිතය">ගණිතය</option>
-                    <option value="විද්‍යාව">විද්‍යාව</option>
-                    <option value="ඉංග්‍රීසි">ඉංග්‍රීසි</option>
-                    <option value="සිංහල">සිංහල</option>
-                    <option value="ඉතිහාසය">ඉතිහාසය</option>
-                </select>
-                <input type="text" id="searchInput" placeholder="මාතෘකාව අනුව සොයන්න..." class="border rounded-lg px-3 py-2">
-                <button id="clearFilterBtn" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-300">Clear</button>
-            </div>
-        </div>
-
-        <div id="loadingSpinner" class="flex justify-center py-12">
-            <div class="loader w-12 h-12 border-4 border-slate-200 rounded-full"></div>
-        </div>
-
-        <div id="papersGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
-        <div id="noPapersMsg" class="text-center py-12 text-slate-500 hidden">ප්‍රශ්න පත්‍ර හමු නොවීය</div>
-    </main>
-
-    <!-- Admin Modal -->
-    <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-4xl w-full max-h- overflow-y-auto p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Admin Panel</h2>
-                <button id="closeAdminBtn" class="text-slate-500 hover:text-slate-700">✕</button>
-            </div>
-            
-            <div class="bg-slate-50 p-4 rounded-lg mb-6">
-                <h3 class="font-semibold mb-3">නව ප්‍රශ්න පත්‍රයක් එකතු කරන්න</h3>
-                <div class="grid md:grid-cols-2 gap-3">
-                    <input id="paperGrade" type="number" placeholder="ශ්‍රේණිය (6-13)" class="border rounded px-3 py-2">
-                    <input id="paperSubject" type="text" placeholder="විෂය" class="border rounded px-3 py-2">
-                    <input id="paperYear" type="number" placeholder="වර්ෂය" class="border rounded px-3 py-2">
-                    <input id="paperExamType" type="text" placeholder="විභාග වර්ගය" class="border rounded px-3 py-2">
-                    <input id="paperMedium" type="text" placeholder="මාධ්‍යය" class="border rounded px-3 py-2">
-                    <input id="paperTitle" type="text" placeholder="මාතෘකාව" class="border rounded px-3 py-2 md:col-span-2">
-                    <input id="paperUrl" type="url" placeholder="Download URL" class="border rounded px-3 py-2 md:col-span-2">
-                    <button id="savePaperBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 md:col-span-2">Save Paper</button>
-                </div>
-            </div>
-
-            <h3 class="font-semibold mb-3">පවතින ප්‍රශ්න පත්‍ර</h3>
-            <div id="adminPapersList" class="space-y-2"></div>
-        </div>
-    </div>
+<body class="bg-gray-100">
+    <!-- ඔයාගේ පරණ HTML එක මෙතනට දාන්න -->
+    <!-- මම JS කොටස විතරක් update කරලා තියෙන්නේ Supabase එක්ක -->
 
     <script>
+        // Supabase Config
         const SUPABASE_URL = 'https://gqgrhhayyzftxmewgrqf.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_GiyRieOHtruTZ-l_fgk7Zg_kEkFuQ4W';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        let allPapers = [];
-        let isAdmin = false;
-
-        const adminLoginBtn = document.getElementById('adminLoginBtn');
-        const adminModal = document.getElementById('adminModal');
-        const closeAdminBtn = document.getElementById('closeAdminBtn');
-        const savePaperBtn = document.getElementById('savePaperBtn');
-        const papersGrid = document.getElementById('papersGrid');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const noPapersMsg = document.getElementById('noPapersMsg');
-
+        // Papers Load කරන Function එක
         async function loadPapers() {
-            loadingSpinner.classList.remove('hidden');
-            papersGrid.classList.add('hidden');
-            noPapersMsg.classList.add('hidden');
-
-            const { data, error } = await supabase
+            const { data: papers, error } = await supabase
                .from('papers')
                .select('*')
                .order('created_at', { ascending: false });
-
-            if (error) {
-                console.error('Error:', error);
-                alert('Data load කරන්න බැරි වුනා: ' + error.message);
-            } else {
-                allPapers = data;
-                renderPapers(allPapers);
-            }
-            loadingSpinner.classList.add('hidden');
-        }
-
-        function renderPapers(papers) {
-            if (papers.length === 0) {
-                noPapersMsg.classList.remove('hidden');
-                papersGrid.classList.add('hidden');
-                return;
-            }
-
-            papersGrid.innerHTML = papers.map(p => `
-                <div class="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition">
-                    <div class="flex justify-between items-start mb-3">
-                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">${p.grade} ශ්‍රේණිය</span>
-                        <span class="text-slate-500 text-sm">${p.year}</span>
-                    </div>
-                    <h3 class="font-semibold text-lg mb-2">${p.title}</h3>
-                    <p class="text-slate-600 text-sm mb-1">${p.subject} - ${p.exam_type}</p>
-                    <p class="text-slate-500 text-xs mb-4">මාධ්‍යය: ${p.medium}</p>
-                    <a href="${p.download_url}" target="_blank" class="block w-full bg-blue-600 text-white text-center py-2 rounded-lg hover:bg-blue-700 transition">
-                        Download PDF
-                    </a>
-                </div>
-            `).join('');
             
-            papersGrid.classList.remove('hidden');
-            noPapersMsg.classList.add('hidden');
-        }
-
-        function renderAdminList() {
-            const adminPapersList = document.getElementById('adminPapersList');
-            adminPapersList.innerHTML = allPapers.map(p => `
-                <div class="flex justify-between items-center bg-white p-3 rounded border">
-                    <div>
-                        <p class="font-medium">${p.title}</p>
-                        <p class="text-sm text-slate-500">${p.grade} ශ්‍රේණිය - ${p.subject} - ${p.year}</p>
-                    </div>
-                    <button onclick="deletePaper(${p.id})" class="text-red-600 hover:text-red-700 px-3 py-1 rounded hover:bg-red-50">Delete</button>
-                </div>
-            `).join('');
-        }
-
-        async function deletePaper(id) {
-            if (!confirm('මෙය Delete කරන්නද?')) return;
-            const { error } = await supabase.from('papers').delete().eq('id', id);
             if (error) {
-                alert('Delete කරන්න බැරි වුනා: ' + error.message);
-            } else {
-                await loadPapers();
-                renderAdminList();
-            }
-        }
-
-        adminLoginBtn.onclick = () => {
-            const pwd = prompt('Admin Password:');
-            if (pwd === 'admin123') {
-                isAdmin = true;
-                adminModal.classList.remove('hidden');
-                renderAdminList();
-            } else if (pwd) {
-                alert('වැරදි Password!');
-            }
-        };
-
-        closeAdminBtn.onclick = () => adminModal.classList.add('hidden');
-
-        savePaperBtn.onclick = async () => {
-            const paper = {
-                grade: document.getElementById('paperGrade').value,
-                subject: document.getElementById('paperSubject').value,
-                year: parseInt(document.getElementById('paperYear').value),
-                exam_type: document.getElementById('paperExamType').value,
-                medium: document.getElementById('paperMedium').value,
-                title: document.getElementById('paperTitle').value,
-                download_url: document.getElementById('paperUrl').value
-            };
-
-            if (!paper.grade ||!paper.subject ||!paper.year ||!paper.title ||!paper.download_url) {
-                alert('සියලුම Fields පුරවන්න!');
+                console.error('Error loading papers:', error);
                 return;
             }
+            
+            // මෙතන ඔයාගේ පරණ table render කරන code එක දාන්න
+            // උදා: displayPapers(papers);
+            console.log('Papers loaded:', papers);
+            renderPapersTable(papers); // ඔයාගේ function එකේ නම මේක නම්
+        }
 
-            savePaperBtn.disabled = true;
-            savePaperBtn.textContent = 'Saving...';
-
-            const { error } = await supabase.from('papers').insert([paper]);
-
+        // Paper එකක් Save කරන Function එක
+        async function savePaper(paperData) {
+            const { data, error } = await supabase
+               .from('papers')
+               .insert([paperData])
+               .select();
+            
             if (error) {
                 alert('Save කරන්න බැරි වුනා: ' + error.message);
-            } else {
-                alert('Paper එක Save වුනා!');
-                document.getElementById('paperGrade').value = '';
-                document.getElementById('paperSubject').value = '';
-                document.getElementById('paperYear').value = '';
-                document.getElementById('paperExamType').value = '';
-                document.getElementById('paperMedium').value = '';
-                document.getElementById('paperTitle').value = '';
-                document.getElementById('paperUrl').value = '';
-                await loadPapers();
-                renderAdminList();
+                return false;
             }
+            
+            alert('Paper එක Save වුනා!');
+            loadPapers(); // Table එක refresh කරන්න
+            return true;
+        }
 
-            savePaperBtn.disabled = false;
-            savePaperBtn.textContent = 'Save Paper';
-        };
+        // Paper එකක් Delete කරන Function එක
+        async function deletePaper(id) {
+            const { error } = await supabase
+               .from('papers')
+               .delete()
+               .eq('id', id);
+            
+            if (error) {
+                alert('Delete කරන්න බැරි වුනා: ' + error.message);
+                return;
+            }
+            
+            alert('Paper එක Delete වුනා!');
+            loadPapers();
+        }
 
-        document.getElementById('filterGrade').onchange = filterPapers;
-        document.getElementById('filterSubject').onchange = filterPapers;
-        document.getElementById('searchInput').oninput = filterPapers;
-        document.getElementById('clearFilterBtn').onclick = () => {
-            document.getElementById('filterGrade').value = '';
-            document.getElementById('filterSubject').value = '';
-            document.getElementById('searchInput').value = '';
-            filterPapers();
-        };
+        // Page load වෙනකොට papers ටික load කරන්න
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPapers();
+        });
 
-        function filterPapers() {
-            const grade = document.getElementById('filterGrade').value;
-            const subject = document.getElementById('filterSubject').value;
-            const search = document.getElementById('searchInput').value.toLowerCase();
-
-            const filtered = allPapers.filter(p => {
-                const matchGrade =!grade || p.grade == grade;
-                const matchSubject =!subject || p.subject === subject;
-                const matchSearch =!search || p.title.toLowerCase().includes(search) || p.subject.toLowerCase().includes(search);
-                return matchGrade &&
+        // ඔයාගේ පරණ code එකේ localStorage.setItem, getItem තියෙන තැන් ඔක්කොම අයින් කරලා
+        // මේ savePaper(), loadPapers(), deletePaper() functions ටික use කරන්න
+    </script>
+</body>
+</html>
