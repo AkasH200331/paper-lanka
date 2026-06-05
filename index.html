@@ -3,114 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paper Lanka</title>
+    <title>Paper Lanka - ශ්‍රී ලංකාවේ පාසල් ප්‍රශ්න පත්‍ර එකතුව</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans Sinhala', sans-serif; }
+      .loader { border-top-color: #2563eb; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
 </head>
-<body class="bg-gray-50">
-    <div class="container mx-auto p-4">
-        <h1 class="text-3xl font-bold text-blue-600 mb-6">Paper Lanka</h1>
+<body class="bg-slate-50 min-h-screen">
 
-        <button id="loginBtn" class="bg-blue-600 text-white px-4 py-2 rounded mb-4">Admin Login</button>
-
-        <div id="papers" class="grid gap-4"></div>
-    </div>
-
-    <!-- Login Modal -->
-    <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg w-96">
-            <h2 class="text-xl font-bold mb-4">Admin Login</h2>
-            <input id="user" type="text" placeholder="Username" class="w-full border p-2 mb-3 rounded">
-            <input id="pass" type="password" placeholder="Password" class="w-full border p-2 mb-3 rounded">
-            <button id="loginSubmit" class="bg-blue-600 text-white px-4 py-2 rounded w-full">Login</button>
-            <button id="closeLogin" class="bg-gray-300 px-4 py-2 rounded w-full mt-2">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-        <div class="bg-white p-6 rounded-lg w-full max-w-2xl">
-            <h2 class="text-xl font-bold mb-4">Add Paper</h2>
-            <div class="grid grid-cols-2 gap-3">
-                <input id="grade" placeholder="Grade" class="border p-2 rounded">
-                <input id="subject" placeholder="Subject" class="border p-2 rounded">
-                <input id="year" placeholder="Year" class="border p-2 rounded">
-                <input id="examType" placeholder="Exam Type" class="border p-2 rounded">
-                <input id="medium" placeholder="Medium" class="border p-2 rounded">
-                <input id="title" placeholder="Title" class="border p-2 rounded col-span-2">
-                <input id="url" placeholder="PDF URL" class="border p-2 rounded col-span-2">
+    <header class="bg-white shadow-sm sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <svg class="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path></svg>
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-600">Paper Lanka</h1>
+                    <p class="text-xs text-slate-500">ශ්‍රී ලංකාවේ පාසල් ප්‍රශ්න පත්‍ර එකතුව</p>
+                </div>
             </div>
-            <button id="saveBtn" class="bg-green-600 text-white px-4 py-2 rounded mt-4">Save Paper</button>
-            <button id="closeAdmin" class="bg-gray-300 px-4 py-2 rounded mt-4 ml-2">Close</button>
+            <button id="adminLoginBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Admin Login</button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+            <h2 class="text-lg font-semibold mb-4">ප්‍රශ්න පත්‍ර සොයන්න</h2>
+            <div class="grid md:grid-cols-5 gap-4">
+                <select id="filterGrade" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">සියලු ශ්‍රේණි</option>
+                    <option value="6">6 ශ්‍රේණිය</option>
+                    <option value="7">7 ශ්‍රේණිය</option>
+                    <option value="8">8 ශ්‍රේණිය</option>
+                    <option value="9">9 ශ්‍රේණිය</option>
+                    <option value="10">10 ශ්‍රේණිය</option>
+                    <option value="11">11 ශ්‍රේණිය</option>
+                    <option value="12">12 ශ්‍රේණිය</option>
+                    <option value="13">13 ශ්‍රේණිය</option>
+                </select>
+                <select id="filterSubject" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">සියලු විෂයයන්</option>
+                    <option value="ගණිතය">ගණිතය</option>
+                    <option value="විද්‍යාව">විද්‍යාව</option>
+                    <option value="ඉංග්‍රීසි">ඉංග්‍රීසි</option>
+                    <option value="සිංහල">සිංහල</option>
+                    <option value="ඉතිහාසය">ඉතිහාසය</option>
+                    <option value="භූගෝල විද්‍යාව">භූගෝල විද්‍යාව</option>
+                    <option value="පුරවැසි අධ්‍යාපනය">පුරවැසි අධ්‍යාපනය</option>
+                </select>
+                <select id="filterYear" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="">සියලු වර්ෂ</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="මාතෘකාව අනුව සොයන්න..." class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                <button id="clearFilterBtn" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-300 transition">Clear</button>
+            </div>
+        </div>
+
+        <div id="loadingSpinner" class="flex justify-center py-12">
+            <div class="loader w-12 h-12 border-4 border-slate-200 rounded-full"></div>
+        </div>
+
+        <div id="papersGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+        <div id="noPapersMsg" class="text-center py-12 text-slate-500 hidden">
+            <p class="text-lg">ප්‍රශ්න පත්‍ර හමු නොවීය</p>
+            <p class="text-sm mt-2">Admin Login කරලා Papers Add කරන්න</p>
+        </div>
+    </main>
+
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6">
+            <h2 class="text-2xl font-bold mb-4">Admin Login</h2>
+            <input id="adminUsername" type="text" placeholder="Username" class="w-full border border-slate-300 rounded-lg px-3 py-2 mb-3 focus:ring-2 focus:ring-blue-500 outline-none">
+            <input id="adminPassword" type="password" placeholder="Password" class="w-full border border-slate-300 rounded-lg px-3 py-2 mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
+            <div class="flex gap-3">
+                <button id="loginSubmitBtn" class="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Login</button>
+                <button id="loginCancelBtn" class="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg hover:bg-slate-300">Cancel</button>
+            </div>
         </div>
     </div>
+
+    <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Admin Panel</h2>
+                <div class="flex gap-3">
+                    <button id="logoutBtn" class="text-red-600 hover:text-red-700 px-4 py-2 rounded-lg hover:bg-red-50">Logout</button>
+                    <button id="closeAdminBtn" class="text-slate-500 hover:text-slate-700 text-2xl">✕</button>
+                </div>
+            </div>
+            
+            <div class="bg-slate-50 p-5 rounded-lg mb-6">
+                <h3 class="font-semibold text-lg mb-4">නව ප්‍රශ්න පත්‍රයක් එකතු කරන්න</h3>
+                <div class="grid md:grid-cols-3 gap-3">
+                    <input id="paperGrade" type="number" placeholder="ශ්‍රේණිය (6-13)" min="6" max="13" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input id="paperSubject" type="text" placeholder="විෂය" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input id="paperYear" type="number" placeholder="වර්ෂය" min="2000" max="2030" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input id="paperExamType" type="text" placeholder="විභාග වර්ගය" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input id="paperMedium" type="text" placeholder="මාධ්‍යය" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input id="paperTitle" type="text" placeholder="මාතෘකාව" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 outline-none md:col-span-3">
+                    <input id="paperUrl" type="url" placeholder="PDF Download URL" class="border border-slate-300 rounded-lg px-3 py-2 focus:ring-blue-500 outline-none md:col-span-3">
+                    <button id="savePaperBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition md:col-span-3">Save Paper</button>
+                </div>
+            </div>
+
+            <h3 class="font-semibold text-lg mb-3">පවතින ප්‍රශ්න පත්‍ර (<span id="paperCount">0</span>)</h3>
+            <div id="adminPapersList" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-600 text-sm">
+            <p>© 2026 Paper Lanka. සියලු හිමිකම් ඇවිරිණි.</p>
+        </div>
+    </footer>
 
     <script>
-        const supabaseUrl = 'https://gqgrhhayyzftxmewgrqf.supabase.co';
-        const supabaseKey = 'sb_publishable_GiyRieOHtruTZ-l_fgk7Zg_kEkFuQ4W';
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const SUPABASE_URL = 'https://gqgrhhayyzftxmewgrqf.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_GiyRieOHtruTZ-l_fgk7Zg_kEkFuQ4W';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Load papers
+        const ADMIN_USERNAME = 'admin';
+        const ADMIN_PASSWORD = 'paper123';
+
+        let allPapers = [];
+        let isAdminLoggedIn = false;
+
+        const adminLoginBtn = document.getElementById('adminLoginBtn');
+        const loginModal = document.getElementById('loginModal');
+        const adminModal = document.getElementById('adminModal');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+        const loginCancelBtn = document.getElementById('loginCancelBtn');
+        const closeAdminBtn = document.getElementById('closeAdminBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const savePaperBtn = document.getElementById('savePaperBtn');
+        const papersGrid = document.getElementById('papersGrid');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const noPapersMsg = document.getElementById('noPapersMsg');
+        const paperCount = document.getElementById('paperCount');
+
         async function loadPapers() {
-            const { data, error } = await supabase.from('papers').select('*');
+            loadingSpinner.classList.remove('hidden');
+            papersGrid.classList.add('hidden');
+            noPapersMsg.classList.add('hidden');
+
+            const { data, error } = await supabase.from('papers').select('*').order('created_at', { ascending: false });
+
             if (error) {
-                console.log('Error:', error);
-                document.getElementById('papers').innerHTML = 'Error: ' + error.message;
+                console.error('Error:', error);
+                loadingSpinner.classList.add('hidden');
                 return;
             }
-            document.getElementById('papers').innerHTML = data.map(p =>
-                `<div class="bg-white p-4 rounded shadow">
-                    <h3 class="font-bold">${p.title}</h3>
-                    <p>Grade ${p.grade} - ${p.subject} - ${p.year}</p>
-                    <a href="${p.download_url}" target="_blank" class="text-blue-600">Download</a>
-                </div>`
-            ).join('');
+
+            allPapers = data || [];
+            renderPapers(allPapers);
+            loadingSpinner.classList.add('hidden');
         }
 
-        // Admin login
-        document.getElementById('loginBtn').onclick = () => {
-            document.getElementById('loginModal').classList.remove('hidden');
-        };
+        function renderPapers(papers) {
+            if (papers.length === 0) {
+                noPapersMsg.classList.remove('hidden');
+                papersGrid.classList.add('hidden');
+                return;
+            }
 
-        document.getElementById('closeLogin').onclick = () => {
-            document.getElementById('loginModal').classList.add('hidden');
-        };
+            papersGrid.innerHTML = papers.map(p => `
+                <div class="bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition border border-slate-100">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">${p.grade} ශ්‍රේණිය</span>
+                        <span class="text-slate-500 text-sm">${p.year}</span>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2 text-slate-800">${p.title}</h3>
+                    <p class="text-slate-600 text-sm mb-1">${p.subject} - ${p.exam_type}</p>
+                    <p class="text-slate-500 text-xs mb-4">මාධ්‍යය: ${p.medium}</p>
+                    <a href="${p.download_url}" target="_blank" rel="noopener" class="block w-full bg-blue-600 text-white text-center py-2.5 rounded-lg hover:bg-blue-700 transition font-medium">
+                        📄 Download PDF
+                    </a>
+                </div>
+            `).join('');
+            
+            papersGrid.classList.remove('hidden');
+            noPapersMsg.classList.add('hidden');
+        }
 
-        document.getElementById('loginSubmit').onclick = () => {
-            if (document.getElementById('user').value === 'admin' &&
-                document.getElementById('pass').value === 'paper123') {
-                document.getElementById('loginModal').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
+        function renderAdminList() {
+            const adminPapersList = document.getElementById('adminPapersList');
+            paperCount.textContent = allPapers.length;
+            
+            if (allPapers.length === 0) {
+                adminPapersList.innerHTML = '<p class="text-slate-500 text-center py-8">තවම ප්‍රශ්න පත්‍ර නෑ</p>';
+                return;
+            }
+
+            adminPapersList.innerHTML = allPapers.map(p => `
+                <div class="flex justify-between items-center bg-white p-4 rounded-lg border border-slate-200 hover:border-slate-300 transition">
+                    <div class="flex-1">
+                        <p class="font-medium text-slate-800">${p.title}</p>
+                        <p class="text-sm text-slate-500 mt-1">${p.grade} ශ්‍රේණිය | ${p.subject} | ${p.year} | ${p.exam_type} | ${p.medium}</p>
+                    </div>
+                    <button onclick="deletePaper(${p.id})" class="text-red-600 hover:text-red-700 px-4 py-2 rounded-lg hover:bg-red-50 transition ml-4">
+                        🗑️ Delete
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function deletePaper(id) {
+            if (!confirm('මෙම ප්‍රශ්න පත්‍රය Delete කරන්නද?')) return;
+            const { error } = await supabase.from('papers').delete().eq('id', id);
+            if (error) {
+                alert('Delete කරන්න බැරි වුනා: ' + error.message);
             } else {
-                alert('Wrong password');
+                await loadPapers();
+                renderAdminList();
+            }
+        }
+
+        adminLoginBtn.onclick = () => {
+            if (isAdminLoggedIn) {
+                adminModal.classList.remove('hidden');
+                renderAdminList();
+            } else {
+                loginModal.classList.remove('hidden');
             }
         };
 
-        document.getElementById('closeAdmin').onclick = () => {
-            document.getElementById('adminPanel').classList.add('hidden');
+        loginSubmitBtn.onclick = () => {
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                localStorage.setItem('paperlanka_admin', 'true');
+                loginModal.classList.add('hidden');
+                adminModal.classList.remove('hidden');
+                renderAdminList();
+                document.getElementById('adminUsername').value = '';
+                document.getElementById('adminPassword').value = '';
+            } else {
+                alert('Username හෝ Password වැරදියි!');
+            }
         };
 
-        // Save paper
-        document.getElementById('saveBtn').onclick = async () => {
+        loginCancelBtn.onclick = () => {
+            loginModal.classList.add('hidden');
+            document.getElementById('adminUsername').value = '';
+            document.getElementById('adminPassword').value = '';
+        };
+
+        closeAdminBtn.onclick = () => adminModal.classList.add('hidden');
+
+        logoutBtn.onclick = () => {
+            isAdminLoggedIn = false;
+            localStorage.removeItem('paperlanka_admin');
+            adminModal.classList.add('hidden');
+        };
+
+        savePaperBtn.onclick = async () => {
             const paper = {
-                grade: parseInt(document.getElementById('grade').value),
-                subject: document.getElementById('subject').value,
-                year: parseInt(document.getElementById('year').value),
-                exam_type: document.getElementById('examType').value,
-                medium: document.getElementById('medium').value,
-                title: document.getElementById('title').value,
-                download_url: document.getElementById('url').value
+                grade: parseInt(document.getElementById('paperGrade').value),
+                subject: document.getElementById('paperSubject').value.trim(),
+                year: parseInt(document.getElementById('paperYear').value),
+                exam_type: document.getElementById('paperExamType').value.trim(),
+                medium: document.getElementById('paperMedium').value.trim(),
+                title: document.getElementById('paperTitle').value.trim(),
+                download_url: document.getElementById('paperUrl').value.trim()
             };
 
-            const { error } = await supabase.from('papers').insert([paper]);
-            if (error) {
-                alert('Error: ' + error.message);
-            } else {
-                alert('Saved!');
-                loadPapers();
-                document.getElementById('adminPanel').classList.add('hidden');
+            if (!paper.grade ||!paper.subject ||!paper.year ||!paper.exam_type ||!paper.medium ||!paper.title ||!paper.download_url) {
+                alert('සියලුම Fields පුරවන්න!');
+                return;
             }
+
+            savePaperBtn.disabled = true;
+            savePaperBtn.textContent = 'Saving...';
+
+            const { error } = await supabase.from('papers').insert([paper]);
+
+            if (error) {
+                alert('Save කරන්න බැරි වුනා: ' + error.message);
+            } else {
+                alert('✅ Paper එක සාර්ථකව Save වුනා!');
+                document.getElementById('paperGrade').value = '';
+                document.getElementById('paperSubject').value = '';
+                document.getElementById('paperYear').value = '';
+                document.getElementById('paperExamType').value = '';
+                document.getElementById('paperMedium').value = '';
+                document.getElementById('paperTitle').value = '';
+                document.getElementById('paperUrl').value = '';
+                await loadPapers();
+                renderAdminList();
+            }
+
+            savePaperBtn.disabled = false;
+            savePaperBtn.textContent = 'Save Paper';
         };
+
+        document.getElementById('filterGrade').onchange = filterPapers;
+        document.getElementById('filterSubject').onchange = filterPapers;
+        document.getElementById('filterYear').onchange = filterPapers;
+        document.getElementById('searchInput').oninput = filterPapers;
+        
+        document.getElementById('clearFilterBtn').onclick = () => {
+            document.getElementById('filterGrade').value = '';
+            document.getElementById('filterSubject').value = '';
+            document.getElementById('filterYear').value = '';
+            document.getElementById('searchInput').value = '';
+            filterPapers();
+        };
+
+        function filterPapers() {
+            const grade = document.getElementById('filterGrade').value;
+            const subject = document.getElementById('filterSubject').value;
+            const year = document.getElementById('filterYear').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = allPapers.filter(p => {
+                const matchGrade =!grade || p.grade == grade;
+                const matchSubject =!subject || p.subject === subject;
+                const matchYear =!year || p.year == year;
+                const matchSearch =!search || 
+                    p.title.toLowerCase().includes(search) || 
+                    p.subject.toLowerCase().includes(search) ||
+                    p.exam_type.toLowerCase().includes(search);
+                return matchGrade && matchSubject && matchYear && matchSearch;
+            });
+
+            renderPapers(filtered);
+        }
+
+        if (localStorage.getItem('paperlanka_admin') === 'true') {
+            isAdminLoggedIn = true;
+        }
 
         loadPapers();
     </script>
